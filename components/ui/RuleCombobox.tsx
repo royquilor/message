@@ -20,14 +20,26 @@ import { cn } from "../../lib/utils";
 // Props for the RuleCombobox
 export interface RuleComboboxProps {
   options: string[];
-  value: string;
-  onSelect: (value: string) => void;
+  value: string[]; // Now an array for multi-select
+  onSelect: (value: string[]) => void; // Passes the new array
   placeholder?: string;
 }
 
-// Single-select, clearable combobox for rules
-export function RuleCombobox({ options, value, onSelect, placeholder = "Add rule..." }: RuleComboboxProps) {
+// Multi-select combobox for rules with badge count
+export function RuleCombobox({ options, value, onSelect }: RuleComboboxProps) {
   const [open, setOpen] = React.useState(false);
+
+  // Toggle selection of a rule
+  const handleSelect = (option: string) => {
+    let newValue: string[];
+    if (value.includes(option)) {
+      newValue = value.filter((v) => v !== option);
+    } else {
+      newValue = [...value, option];
+    }
+    onSelect(newValue);
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -37,7 +49,14 @@ export function RuleCombobox({ options, value, onSelect, placeholder = "Add rule
           aria-expanded={open}
           className="w-[200px] justify-between"
         >
-          {value ? value : placeholder}
+          <span className="flex items-center gap-2">
+            Rules
+            {value.length > 0 && (
+              <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full bg-gray-200 text-gray-800">
+                {value.length}
+              </span>
+            )}
+          </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -51,15 +70,12 @@ export function RuleCombobox({ options, value, onSelect, placeholder = "Add rule
                 <CommandItem
                   key={option}
                   value={option}
-                  onSelect={() => {
-                    onSelect(option);
-                    setOpen(false);
-                  }}
+                  onSelect={() => handleSelect(option)}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === option ? "opacity-100" : "opacity-0"
+                      value.includes(option) ? "opacity-100" : "opacity-0"
                     )}
                   />
                   {option}

@@ -196,14 +196,11 @@ function generateInitialRows(): CampaignRow[] {
 
 // Static list of rules for the combobox
 const RULES = [
-  'Brand Guidelines',
-  'Language Rules',
-  'Legal Requirements',
-  'Tone of Voice',
-  'Formatting',
-  'Cultural Sensitivity',
-  'Trademark Usage',
-  'Product Claims',
+  'Brand guidelines v1.2',
+  'Cultural Recommandations - Global v7',
+  'Cultural Recommandations - Latin Countries v1',
+  'Cultural Recommandations - Nordics v1',
+  'Predefined Translations - Global v3',
 ];
 
 const COMMON_CAMPAIGNS = [
@@ -252,8 +249,8 @@ const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCamp
   const [loading, setLoading] = useState(false);
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const [translated, setTranslated] = useState(false);
-  // State for selected rule (single selection)
-  const [selectedRule, setSelectedRule] = useState<string>("");
+  // State for selected rules (multi-selection)
+  const [selectedRules, setSelectedRules] = useState<string[]>([]);
 
   // Loading messages for the Translate button
   const loadingMessages = [
@@ -328,9 +325,9 @@ const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCamp
     }, 2700); // Simulate API delay (3 loading messages)
   };
 
-  // Handler for selecting/clearing a rule from the combobox
-  const handleSelectRule = (rule: string) => {
-    setSelectedRule(prev => (prev === rule ? "" : rule));
+  // Handler for selecting/clearing rules from the combobox
+  const handleSelectRule = (rules: string[]) => {
+    setSelectedRules(rules);
   };
 
   // --- Render ---
@@ -412,12 +409,11 @@ const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCamp
         </div>
         {/* Right group: Rules Combobox */}
         <div className="flex items-center">
-          {/* Rules Combobox: single selection, clearable, right-aligned */}
+          {/* Rules Combobox: multi-selection, right-aligned */}
           <RuleCombobox
             options={RULES}
-            value={selectedRule}
+            value={selectedRules}
             onSelect={handleSelectRule}
-            placeholder="Rules"
           />
         </div>
       </div>
