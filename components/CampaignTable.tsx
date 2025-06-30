@@ -8,17 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from './ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { ChevronsUpDown } from 'lucide-react';
+import { Textarea } from './ui/textarea';
 
 // --- Type Definitions ---
-// Define the supported locales
+// Merge DE and AT into a single column 'DE/AT'
 const LOCALES = [
-  { code: 'de', label: 'DE' },
-  { code: 'at', label: 'AT' },
+  { code: 'de_at', label: 'DE/AT' },
   { code: 'fr', label: 'FR' },
   { code: 'es', label: 'ES' },
 ] as const;
-
-type LocaleCode = typeof LOCALES[number]['code'];
 
 // Define the row type
 interface CampaignTableProps {
@@ -30,7 +28,13 @@ interface CampaignRow {
   section: string;
   topic: string;
   ukText: string;
-  translations: Record<LocaleCode, string>;
+  // Store de and at separately for merging in the table
+  translations: {
+    de: string;
+    at: string;
+    fr: string;
+    es: string;
+  };
 }
 
 // List of channels (for selector)
@@ -355,10 +359,10 @@ const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCamp
         <thead>
           <tr>
             {/* Make Topic column fixed width to match other columns */}
-            <th className="border px-2 py-1 w-[300px] text-sm font-medium">Topic</th>
-            <th className="border px-2 py-1 w-[300px] text-sm">UK English</th>
+            <th className="border px-2 py-1 w-[300px] text-sm font-medium text-left">Topic</th>
+            <th className="border px-2 py-1 w-[300px] text-sm text-left">UK English</th>
             {LOCALES.map(locale => (
-              <th key={locale.code} className="border px-2 py-1 w-[300px] text-sm">{locale.label}</th>
+              <th key={locale.code} className="border px-2 py-1 w-[300px] text-sm text-left">{locale.label}</th>
             ))}
           </tr>
         </thead>
@@ -385,28 +389,40 @@ const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCamp
                 rows.filter(row => row.section === section.name).map(row => (
                   <tr key={row.id}>
                     {/* Make Topic cell compact as well, but with text-sm for readability */}
-                    <td className="border px-2 py-1 w-36 text-sm whitespace-nowrap">{row.topic}</td>
+                    <td className="border px-2 py-1 w-36 text-sm whitespace-nowrap align-top text-left">{row.topic}</td>
                     <td className="border px-2 py-1 w-[300px]">
-                      {/* Set fixed width for UK English column for consistency with language columns */}
-                      <textarea
-                        className="w-full min-w-[120px] border rounded p-1 text-sm"
+                      {/* Use shadcn/ui Textarea, borderless and minimal */}
+                      <Textarea
+                        className="w-full min-w-[120px] border-none focus:ring-0 resize-none text-sm bg-transparent"
                         value={row.ukText}
                         onChange={e => handleUkTextChange(row.id, e.target.value)}
                         rows={1}
                         placeholder="Enter UK English copy..."
                         disabled={loading}
-                        style={{ resize: 'vertical' }}
+                        style={{ padding: 0 }}
                       />
                     </td>
-                    {LOCALES.map(locale => (
-                      <td
-                        key={locale.code}
-                        className={`border px-2 py-1 w-[300px] text-sm ${!row.translations[locale.code] ? 'bg-gray-50 text-gray-400' : ''}`}
-                      >
-                        {/* Set fixed width for language columns for equal sizing and better horizontal scroll */}
-                        {row.translations[locale.code] || '—'}
-                      </td>
-                    ))}
+                    {/* DE/AT merged column */}
+                    <td
+                      className={`border px-2 py-1 w-[300px] text-sm align-top text-left ${!row.translations.de && !row.translations.at ? 'bg-gray-50 text-gray-400' : ''}`}
+                    >
+                      {/* Show both if different, else just one. Use line break if both present and different. */}
+                      {row.translations.de && row.translations.at && row.translations.de !== row.translations.at
+                        ? <>{row.translations.de}<br />{row.translations.at}</>
+                        : row.translations.de || row.translations.at || '—'}
+                    </td>
+                    {/* FR column */}
+                    <td
+                      className={`border px-2 py-1 w-[300px] text-sm align-top text-left ${!row.translations.fr ? 'bg-gray-50 text-gray-400' : ''}`}
+                    >
+                      {row.translations.fr || '—'}
+                    </td>
+                    {/* ES column */}
+                    <td
+                      className={`border px-2 py-1 w-[300px] text-sm align-top text-left ${!row.translations.es ? 'bg-gray-50 text-gray-400' : ''}`}
+                    >
+                      {row.translations.es || '—'}
+                    </td>
                   </tr>
                 ))}
             </React.Fragment>
