@@ -28,10 +28,9 @@ interface CampaignRow {
   section: string;
   topic: string;
   ukText: string;
-  // Store de and at separately for merging in the table
+  // Only store de, fr, es translations (AT removed)
   translations: {
     de: string;
-    at: string;
     fr: string;
     es: string;
   };
@@ -102,71 +101,71 @@ function generateInitialRows(): CampaignRow[] {
     for (const topic of section.topics) {
       // Pre-fill only the 'Lead-up' section with values from the image
       if (section.name === 'Lead-up') {
-        let ukText = '', de = '', at = '', fr = '', es = '';
+        let ukText = '', de = '', fr = '', es = '';
         switch (topic) {
           case 'Headline (wide)':
             ukText = 'Black Friday Week';
-            de = at = 'Black Friday Woche';
+            de = 'Black Friday Woche';
             fr = 'Black Friday Week';
             es = 'Semana de Black Friday';
             break;
           case 'Headline (square)':
             ukText = 'Black Friday Week';
-            de = at = 'Black Friday Woche';
+            de = 'Black Friday Woche';
             fr = 'Black Friday Week';
             es = 'Semana de Black Friday';
             break;
           case 'Headline (narrow)':
             ukText = 'Black Friday Week';
-            de = at = 'Black Friday Woche';
+            de = 'Black Friday Woche';
             fr = 'Black\nFriday\nWeek';
             es = 'Semana\nde Black\nFriday';
             break;
           case 'Subheader (% off — 1-line)':
             ukText = 'Up to 40% off';
-            de = at = 'Up to 40% off';
+            de = 'Up to 40% off';
             fr = 'Up to 40% off';
             es = 'Up to 40% off';
             break;
           case 'Subheader (% off — 2-line)':
             ukText = 'Up to 40% off';
-            de = at = 'Spare bis\nzu 40 %';
+            de = 'Spare bis\nzu 40 %';
             fr = '';
             es = 'Ahorra hasta\nun 45 %';
             break;
           case 'Date (1-line)':
             ukText = '21 Nov–2 Dec';
-            de = at = '21. Nov. - 2. Dez.';
+            de = '21. Nov. - 2. Dez.';
             fr = '21 nov.-2 déc.';
             es = '21 nov. - 2 dic.';
             break;
           case 'Date (2-line)':
             ukText = '';
-            de = at = '';
+            de = '';
             fr = '';
             es = '';
             break;
           case 'CTA':
             ukText = 'Learn more';
-            de = at = 'Mehr erfahren';
+            de = 'Mehr erfahren';
             fr = 'En savoir plus';
             es = 'Ver más';
             break;
           case 'Legal':
             ukText = 'Selected products only';
-            de = at = 'Nur auf ausgewählte Produkte';
+            de = 'Nur auf ausgewählte Produkte';
             fr = 'Uniquement sur une sélection de produits';
             es = 'Más información en Amazon.es';
             break;
           case 'Legal - (2 lines)':
             ukText = 'Selected products only';
-            de = at = 'Nur auf ausgewählte Produkte';
+            de = 'Nur auf ausgewählte Produkte';
             fr = 'Uniquement sur\nune sélection\nde produits';
             es = 'Más información\nen Amazon.es';
             break;
           case 'Box Logo':
             ukText = 'amazon + smile';
-            de = at = 'amazon + smile';
+            de = 'amazon + smile';
             fr = 'amazon + smile';
             es = 'amazon + smile';
             break;
@@ -178,7 +177,7 @@ function generateInitialRows(): CampaignRow[] {
           section: section.name,
           topic,
           ukText,
-          translations: { de, at, fr, es },
+          translations: { de, fr, es },
         });
       } else {
         // Other sections remain empty
@@ -187,7 +186,7 @@ function generateInitialRows(): CampaignRow[] {
           section: section.name,
           topic,
           ukText: '',
-          translations: { de: '', at: '', fr: '', es: '' },
+          translations: { de: '', fr: '', es: '' },
         });
       }
     }
@@ -216,6 +215,18 @@ const COMMON_CAMPAIGNS = [
   'Holiday Deals',
   'Summer Sale',
 ];
+
+// Store original Lead-up DE, FR, and ES translations by row ID for translation reset
+const ORIGINAL_LEADUP_TRANSLATIONS: Record<number, { de: string; fr: string; es: string }> = (() => {
+  const rows = generateInitialRows();
+  const map: Record<number, { de: string; fr: string; es: string }> = {};
+  for (const row of rows) {
+    if (row.section === 'Lead-up') {
+      map[row.id] = { de: row.translations.de, fr: row.translations.fr, es: row.translations.es };
+    }
+  }
+  return map;
+})();
 
 // --- Main Component ---
 const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCampaignName = 'Black Friday' }) => {
@@ -282,7 +293,7 @@ const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCamp
       setRows(rows =>
         rows.map(row => ({
           ...row,
-          translations: { de: '', at: '', fr: '', es: '' },
+          translations: { de: '', fr: '', es: '' },
         }))
       );
       setTranslated(false);
@@ -295,15 +306,20 @@ const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCamp
         rows.map(row => ({
           ...row,
           translations: {
-            de:
-              row.ukText === 'Black Friday Week' && row.ukText
+            // For 'Lead-up', use original DE/FR/ES; for others, use UK text or special case
+            de: row.section === 'Lead-up'
+              ? ORIGINAL_LEADUP_TRANSLATIONS[row.id]?.de || ''
+              : row.ukText === 'Black Friday Week' && row.ukText
                 ? 'Black Friday Woche'
                 : row.ukText
                 ? row.ukText
                 : '',
-            at: '', // Remove AT translation in mock logic
-            fr: row.ukText ? row.ukText : '',
-            es: row.ukText ? row.ukText : '',
+            fr: row.section === 'Lead-up'
+              ? ORIGINAL_LEADUP_TRANSLATIONS[row.id]?.fr || ''
+              : row.ukText ? row.ukText : '',
+            es: row.section === 'Lead-up'
+              ? ORIGINAL_LEADUP_TRANSLATIONS[row.id]?.es || ''
+              : row.ukText ? row.ukText : '',
           },
         }))
       );
@@ -456,16 +472,13 @@ const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCamp
                         style={{ padding: 0 }}
                       />
                     </td>
-                    {/* DE/AT merged column */}
+                    {/* DE/AT merged column now only uses de translation */}
                     <td
-                      className={`border px-2 py-1 w-[300px] text-sm align-top text-left ${!row.translations.de && !row.translations.at ? 'bg-gray-50 text-gray-400' : ''}`}
+                      className={`border px-2 py-1 w-[300px] text-sm align-top text-left ${!row.translations.de ? 'bg-gray-50 text-gray-400' : ''}`}
                     >
-                      {/* Show both if different, else just one. Use line break if both present and different. */}
-                      {(!translated || (!row.translations.de && !row.translations.at))
+                      {(!translated || !row.translations.de)
                         ? '—'
-                        : row.translations.de && row.translations.at && row.translations.de !== row.translations.at
-                          ? <>{row.translations.de}<br />{row.translations.at}</>
-                          : row.translations.de || row.translations.at || '—'}
+                        : row.translations.de}
                     </td>
                     {/* FR column */}
                     <td
