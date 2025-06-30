@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 // Import shadcn/ui components (replace with your actual import paths)
 import { Button } from './ui/button';
 import { RuleCombobox } from './ui/RuleCombobox';
@@ -119,8 +119,8 @@ function generateInitialRows(): CampaignRow[] {
           case 'Headline (narrow)':
             ukText = 'Black Friday Week';
             de = at = 'Black Friday Woche';
-            fr = 'Black Friday Week';
-            es = 'Semana de Black Friday';
+            fr = 'Black\nFriday\nWeek';
+            es = 'Semana\nde Black\nFriday';
             break;
           case 'Subheader (% off — 1-line)':
             ukText = 'Up to 40% off';
@@ -130,9 +130,9 @@ function generateInitialRows(): CampaignRow[] {
             break;
           case 'Subheader (% off — 2-line)':
             ukText = 'Up to 40% off';
-            de = at = 'Spare bis zu 40 %';
+            de = at = 'Spare bis\nzu 40 %';
             fr = '';
-            es = 'Ahorra hasta un 45 %';
+            es = 'Ahorra hasta\nun 45 %';
             break;
           case 'Date (1-line)':
             ukText = '21 Nov–2 Dec';
@@ -157,6 +157,12 @@ function generateInitialRows(): CampaignRow[] {
             de = at = 'Nur auf ausgewählte Produkte';
             fr = 'Uniquement sur une sélection de produits';
             es = 'Más información en Amazon.es';
+            break;
+          case 'Legal - (2 lines)':
+            ukText = 'Selected products only';
+            de = at = 'Nur auf ausgewählte Produkte';
+            fr = 'Uniquement sur\nune sélection\nde produits';
+            es = 'Más información\nen Amazon.es';
             break;
           case 'Box Logo':
             ukText = 'amazon + smile';
@@ -233,8 +239,27 @@ const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCamp
   const inputRef = useRef<HTMLInputElement>(null);
   // State for loading (translation)
   const [loading, setLoading] = useState(false);
+  const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
+  const [translated, setTranslated] = useState(false);
   // State for selected rule (single selection)
   const [selectedRule, setSelectedRule] = useState<string>("");
+
+  // Loading messages for the Translate button
+  const loadingMessages = [
+    'Applying rules…',
+    'Working hard…',
+    'Almost done…',
+  ];
+
+  // Cycle through loading messages while loading
+  useEffect(() => {
+    if (!loading) return;
+    if (loadingMsgIdx >= loadingMessages.length - 1) return;
+    const timeout = setTimeout(() => {
+      setLoadingMsgIdx(idx => idx + 1);
+    }, 900);
+    return () => clearTimeout(timeout);
+  }, [loading, loadingMsgIdx]);
 
   // Handle UK English text change
   const handleUkTextChange = (id: number, value: string) => {
@@ -252,7 +277,19 @@ const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCamp
 
   // Mock translation logic
   const handleTranslate = () => {
+    // If already translated, reset translations to empty before translating again
+    if (translated) {
+      setRows(rows =>
+        rows.map(row => ({
+          ...row,
+          translations: { de: '', at: '', fr: '', es: '' },
+        }))
+      );
+      setTranslated(false);
+    }
     setLoading(true);
+    setLoadingMsgIdx(0);
+    // Simulate translation delay and cycling messages
     setTimeout(() => {
       setRows(rows =>
         rows.map(row => ({
@@ -262,16 +299,17 @@ const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCamp
               row.ukText === 'Black Friday Week' && row.ukText
                 ? 'Black Friday Woche'
                 : row.ukText
-                ? row.ukText + ' [DE]'
+                ? row.ukText
                 : '',
-            at: row.ukText ? row.ukText + ' [AT]' : '',
-            fr: row.ukText ? row.ukText + ' [FR]' : '',
-            es: row.ukText ? row.ukText + ' [ES]' : '',
+            at: '', // Remove AT translation in mock logic
+            fr: row.ukText ? row.ukText : '',
+            es: row.ukText ? row.ukText : '',
           },
         }))
       );
       setLoading(false);
-    }, 1200); // Simulate API delay
+      setTranslated(true);
+    }, 2700); // Simulate API delay (3 loading messages)
   };
 
   // Handler for selecting/clearing a rule from the combobox
@@ -332,7 +370,7 @@ const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCamp
           options={RULES}
           value={selectedRule}
           onSelect={handleSelectRule}
-          placeholder="Add rule..."
+          placeholder="Rule..."
         />
         {/* Channel Selector using shadcn/ui Select, label visually hidden but accessible */}
         <label htmlFor="channel" className="sr-only">Channel:</label>
@@ -348,8 +386,12 @@ const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCamp
         </Select>
         {/* Translate button now appears after the channel combobox */}
         <Button onClick={handleTranslate} disabled={loading}>
-          {loading ? 'Translating...' : 'Translate'}
+          {loading ? loadingMessages[loadingMsgIdx] : 'Translate'}
         </Button>
+        {/* Download button appears after translation is complete */}
+        {translated && (
+          <Button variant="outline" className="ml-2">Download as .xlsx</Button>
+        )}
       </div>
 
       {/* Download Button row can be added here if needed */}
@@ -359,7 +401,7 @@ const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCamp
         <thead>
           <tr>
             {/* Make Topic column fixed width to match other columns */}
-            <th className="border px-2 py-1 w-[300px] text-sm font-medium text-left">Topic</th>
+            <th className="border px-2 py-1 w-[300px] text-sm text-left">Topic</th>
             <th className="border px-2 py-1 w-[300px] text-sm text-left">UK English</th>
             {LOCALES.map(locale => (
               <th key={locale.code} className="border px-2 py-1 w-[300px] text-sm text-left">{locale.label}</th>
@@ -393,7 +435,7 @@ const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCamp
                     <td className="border px-2 py-1 w-[300px]">
                       {/* Use shadcn/ui Textarea, borderless and minimal */}
                       <Textarea
-                        className="w-full min-w-[120px] border-none focus:ring-0 resize-none text-sm bg-transparent"
+                        className="w-full min-w-[120px] border-none focus:ring-0 resize-none text-sm bg-transparent shadow-none"
                         value={row.ukText}
                         onChange={e => handleUkTextChange(row.id, e.target.value)}
                         rows={1}
@@ -407,21 +449,23 @@ const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCamp
                       className={`border px-2 py-1 w-[300px] text-sm align-top text-left ${!row.translations.de && !row.translations.at ? 'bg-gray-50 text-gray-400' : ''}`}
                     >
                       {/* Show both if different, else just one. Use line break if both present and different. */}
-                      {row.translations.de && row.translations.at && row.translations.de !== row.translations.at
-                        ? <>{row.translations.de}<br />{row.translations.at}</>
-                        : row.translations.de || row.translations.at || '—'}
+                      {(!translated || (!row.translations.de && !row.translations.at))
+                        ? '—'
+                        : row.translations.de && row.translations.at && row.translations.de !== row.translations.at
+                          ? <>{row.translations.de}<br />{row.translations.at}</>
+                          : row.translations.de || row.translations.at || '—'}
                     </td>
                     {/* FR column */}
                     <td
                       className={`border px-2 py-1 w-[300px] text-sm align-top text-left ${!row.translations.fr ? 'bg-gray-50 text-gray-400' : ''}`}
                     >
-                      {row.translations.fr || '—'}
+                      {(!translated || !row.translations.fr) ? '—' : row.translations.fr}
                     </td>
                     {/* ES column */}
                     <td
                       className={`border px-2 py-1 w-[300px] text-sm align-top text-left ${!row.translations.es ? 'bg-gray-50 text-gray-400' : ''}`}
                     >
-                      {row.translations.es || '—'}
+                      {(!translated || !row.translations.es) ? '—' : row.translations.es}
                     </td>
                   </tr>
                 ))}
