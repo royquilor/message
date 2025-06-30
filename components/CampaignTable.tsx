@@ -7,7 +7,7 @@ import { RuleCombobox } from './ui/RuleCombobox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from './ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-import { ChevronsUpDown } from 'lucide-react';
+import { ChevronsUpDown, Sparkles, Loader2 } from 'lucide-react';
 import { Textarea } from './ui/textarea';
 
 // --- Type Definitions ---
@@ -320,78 +320,90 @@ const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCamp
   // --- Render ---
   return (
     <div className="w-full max-w-full overflow-x-auto p-4">
-      {/* Header row with campaign name and dynamic badge, plus Translate button */}
-      <div className="flex items-center mb-4 flex-wrap gap-2">
-        <span className="font-semibold text-lg">Global campaign</span>
-        {/* Campaign name combobox with suggestions and free entry */}
-        <Popover open={campaignPopoverOpen} onOpenChange={setCampaignPopoverOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={campaignPopoverOpen}
-              className="w-[200px] justify-between text-sm"
-            >
-              {campaignName || 'Select campaign...'}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[240px] p-0">
-            <Command>
-              <CommandInput
-                ref={inputRef}
-                value={campaignName}
-                onValueChange={setCampaignName}
-                placeholder="Search or type campaign..."
-                className="h-9"
-              />
-              <CommandList>
-                <CommandEmpty>No campaign found.</CommandEmpty>
-                <CommandGroup>
-                  {COMMON_CAMPAIGNS.map((c) => (
-                    <CommandItem
-                      key={c}
-                      value={c}
-                      onSelect={() => {
-                        setCampaignName(c);
-                        setCampaignPopoverOpen(false);
-                      }}
-                    >
-                      {c}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-        {/* Rules Combobox: single selection, clearable */}
-        <RuleCombobox
-          options={RULES}
-          value={selectedRule}
-          onSelect={handleSelectRule}
-          placeholder="Rule..."
-        />
-        {/* Channel Selector using shadcn/ui Select, label visually hidden but accessible */}
-        <label htmlFor="channel" className="sr-only">Channel:</label>
-        <Select value={channel} onValueChange={setChannel} name="channel">
-          <SelectTrigger id="channel" className="w-[200px]">
-            <SelectValue placeholder="Select channel..." />
-          </SelectTrigger>
-          <SelectContent>
-            {CHANNELS.map(ch => (
-              <SelectItem key={ch} value={ch}>{ch}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {/* Translate button now appears after the channel combobox */}
-        <Button onClick={handleTranslate} disabled={loading}>
-          {loading ? loadingMessages[loadingMsgIdx] : 'Translate'}
-        </Button>
-        {/* Download button appears after translation is complete */}
-        {translated && (
-          <Button variant="outline" className="ml-2">Download as .xlsx</Button>
-        )}
+      {/* Header row with campaign name, channel selector, translate/download buttons (left), and Rules combobox (right) */}
+      <div className="flex items-center mb-4 flex-wrap gap-2 justify-between">
+        {/* Left group: Campaign, campaign selector, channel selector, translate/download buttons */}
+        <div className="flex items-center flex-wrap gap-2">
+          <span className="font-semibold text-lg">Campaign</span>
+          {/* Campaign name combobox with suggestions and free entry */}
+          <Popover open={campaignPopoverOpen} onOpenChange={setCampaignPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={campaignPopoverOpen}
+                className="w-[200px] justify-between text-sm"
+              >
+                {campaignName || 'Select campaign...'}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[240px] p-0">
+              <Command>
+                <CommandInput
+                  ref={inputRef}
+                  value={campaignName}
+                  onValueChange={setCampaignName}
+                  placeholder="Search or type campaign..."
+                  className="h-9"
+                />
+                <CommandList>
+                  <CommandEmpty>No campaign found.</CommandEmpty>
+                  <CommandGroup>
+                    {COMMON_CAMPAIGNS.map((c) => (
+                      <CommandItem
+                        key={c}
+                        value={c}
+                        onSelect={() => {
+                          setCampaignName(c);
+                          setCampaignPopoverOpen(false);
+                        }}
+                      >
+                        {c}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          {/* Channel Selector using shadcn/ui Select, label visually hidden but accessible */}
+          <label htmlFor="channel" className="sr-only">Channel:</label>
+          <Select value={channel} onValueChange={setChannel} name="channel">
+            <SelectTrigger id="channel" className="w-[200px]">
+              <SelectValue placeholder="Select channel..." />
+            </SelectTrigger>
+            <SelectContent>
+              {CHANNELS.map(ch => (
+                <SelectItem key={ch} value={ch}>{ch}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {/* Translate button now appears after the channel combobox */}
+          <Button onClick={handleTranslate} disabled={loading} className="gap-2">
+            {/* Show spinning Loader2 icon when loading, otherwise Sparkles icon. Medium gap between icon and text. */}
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
+            {loading ? loadingMessages[loadingMsgIdx] : 'Translate'}
+          </Button>
+          {/* Download button appears after translation is complete */}
+          {translated && (
+            <Button variant="outline" className="ml-2">Download as .xlsx</Button>
+          )}
+        </div>
+        {/* Right group: Rules Combobox */}
+        <div className="flex items-center">
+          {/* Rules Combobox: single selection, clearable, right-aligned */}
+          <RuleCombobox
+            options={RULES}
+            value={selectedRule}
+            onSelect={handleSelectRule}
+            placeholder="Rules"
+          />
+        </div>
       </div>
 
       {/* Download Button row can be added here if needed */}
