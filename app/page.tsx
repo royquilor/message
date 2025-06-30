@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
-import Image from "next/image";
+import React from 'react';
 import CampaignTable from '../components/CampaignTable';
 
 export default function Home() {
