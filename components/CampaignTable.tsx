@@ -124,7 +124,7 @@ function generateInitialRows(): CampaignRow[] {
           case 'Subheader (% off — 1-line)':
             ukText = 'Up to 40% off';
             de = 'Spare bis zu 40 %';
-            fr = 'Jusqu’à -35 %';
+            fr = "Jusqu'à -35 %";
             es = 'Ahorra hasta un 45 %';
             break;
           case 'Subheader (% off — 2-line)':
@@ -456,10 +456,10 @@ const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCamp
                   <tr key={row.id}>
                     {/* Make Topic cell compact as well, but with text-sm for readability */}
                     <td className="border px-2 py-1 w-36 text-sm whitespace-nowrap align-top text-left">{row.topic}</td>
-                    <td className="border px-2 py-1 w-[300px]">
+                    <td className="border px-2 py-1 w-[300px] bg-gray-50">
                       {/* Use shadcn/ui Textarea, borderless and minimal */}
                       <Textarea
-                        className="w-full min-w-[120px] border-none focus:ring-0 resize-none text-sm bg-transparent shadow-none"
+                        className="w-full min-w-[120px] border-none focus:ring-0 resize-none text-sm bg-transparent !bg-transparent shadow-none"
                         value={row.ukText}
                         onChange={e => handleUkTextChange(row.id, e.target.value)}
                         rows={1}
