@@ -229,12 +229,12 @@ const ORIGINAL_LEADUP_TRANSLATIONS: Record<number, { de: string; fr: string; es:
 const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCampaignName = 'Black Friday' }) => {
   // State for campaign rows
   const [rows, setRows] = useState<CampaignRow[]>(generateInitialRows());
-  // Set only 'Lead-up' open by default, others collapsed
+  // Set all sections collapsed by default
   const [collapsed, setCollapsed] = useState<{ [section: string]: boolean }>(
     () => {
       const state: { [section: string]: boolean } = {};
       for (const section of SECTIONS) {
-        state[section.name] = section.name !== 'Lead-up'; // true = collapsed, false = expanded
+        state[section.name] = true; // all collapsed by default
       }
       return state;
     }
