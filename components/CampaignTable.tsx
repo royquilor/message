@@ -123,9 +123,9 @@ function generateInitialRows(): CampaignRow[] {
             break;
           case 'Subheader (% off — 1-line)':
             ukText = 'Up to 40% off';
-            de = 'Up to 40% off';
-            fr = 'Up to 40% off';
-            es = 'Up to 40% off';
+            de = 'Spare bis zu 40 %';
+            fr = 'Jusqu’à -35 %';
+            es = 'Ahorra hasta un 45 %';
             break;
           case 'Subheader (% off — 2-line)':
             ukText = 'Up to 40% off';
