@@ -110,14 +110,14 @@ function generateInitialRows(): CampaignRow[] {
             es = 'Semana de Black Friday';
             break;
           case 'Headline (square)':
-            ukText = 'Black Friday Week';
-            de = 'Black Friday Woche';
-            fr = 'Black Friday Week';
-            es = 'Semana de Black Friday';
+            ukText = 'Black Friday\nWeek';
+            de = 'Black Friday\nWoche';
+            fr = 'Black Friday\nWeek';
+            es = 'Semana de\nBlack Friday';
             break;
           case 'Headline (narrow)':
-            ukText = 'Black Friday Week';
-            de = 'Black Friday Woche';
+            ukText = 'Black\nFriday\nWeek';
+            de = 'Black\nFriday\nWoche';
             fr = 'Black\nFriday\nWeek';
             es = 'Semana\nde Black\nFriday';
             break;
@@ -128,7 +128,7 @@ function generateInitialRows(): CampaignRow[] {
             es = 'Ahorra hasta un 45 %';
             break;
           case 'Subheader (% off — 2-line)':
-            ukText = 'Up to 40% off';
+            ukText = 'Up to\n40% off';
             de = 'Spare bis\nzu 40 %';
             fr = '';
             es = 'Ahorra hasta\nun 45 %';
@@ -472,21 +472,43 @@ const CampaignTable: React.FC<CampaignTableProps> = ({ campaignName: initialCamp
                     <td
                       className={`border px-2 py-1 w-[300px] text-sm align-top text-left ${!row.translations.de ? 'bg-gray-50 text-gray-400' : ''}`}
                     >
+                      {/* Render newlines as line breaks for DE/AT */}
                       {(!translated || !row.translations.de)
                         ? '—'
-                        : row.translations.de}
+                        : row.translations.de.split('\n').map((line, i, arr) => (
+                            <React.Fragment key={i}>
+                              {line}
+                              {i < arr.length - 1 && <br />}
+                            </React.Fragment>
+                          ))}
                     </td>
                     {/* FR column */}
                     <td
                       className={`border px-2 py-1 w-[300px] text-sm align-top text-left ${!row.translations.fr ? 'bg-gray-50 text-gray-400' : ''}`}
                     >
-                      {(!translated || !row.translations.fr) ? '—' : row.translations.fr}
+                      {/* Render newlines as line breaks for FR */}
+                      {(!translated || !row.translations.fr)
+                        ? '—'
+                        : row.translations.fr.split('\n').map((line, i, arr) => (
+                            <React.Fragment key={i}>
+                              {line}
+                              {i < arr.length - 1 && <br />}
+                            </React.Fragment>
+                          ))}
                     </td>
                     {/* ES column */}
                     <td
                       className={`border px-2 py-1 w-[300px] text-sm align-top text-left ${!row.translations.es ? 'bg-gray-50 text-gray-400' : ''}`}
                     >
-                      {(!translated || !row.translations.es) ? '—' : row.translations.es}
+                      {/* Render newlines as line breaks for ES */}
+                      {(!translated || !row.translations.es)
+                        ? '—'
+                        : row.translations.es.split('\n').map((line, i, arr) => (
+                            <React.Fragment key={i}>
+                              {line}
+                              {i < arr.length - 1 && <br />}
+                            </React.Fragment>
+                          ))}
                     </td>
                   </tr>
                 ))}
